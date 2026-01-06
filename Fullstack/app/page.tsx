@@ -1,5 +1,5 @@
 "use client"
-import Form from "./components/Form";
+import Form from "../components/Form";
 import { useEffect, useState } from "react";
 import {
   NativeSelect,
@@ -9,7 +9,7 @@ import { createTitle, fetchModels } from "./api/actions";
 import { messageCountStore } from "@/hooks/use-checkcount";
 import { createTailwindMerge } from "tailwind-merge";
 import { useChatStore } from "@/hooks/persist-chat-hook";
-import { Trash } from "lucide-react";
+import { Trash, MessageSquareIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTitleStore } from "@/hooks/use-chat-title";
 import {
@@ -56,10 +56,17 @@ export default function Home() {
 
       <div className="bg-zinc-50 w-1/3 mr-5 h-screen pt-5 border-gray-400 border-r flex justify-center">
         <div className="w-full flex flex-col items-center  ">
-          <p className="p-5 border-b font-mono">CHAT HISTORY</p>
-          <div className="flex text-sm w-full  justify-evenly p-2 bg-gray-200 text-gray-900 border rounded-bl-none">
+          <div className="p-5">
+
+            <Button> <MessageSquareIcon />Create a chat </Button>
+          </div>
+          <p className="p-2 m-4 border-b font-mono text-md">CHAT HISTORY</p>
+          < div className="flex text-center text-sm w-full  justify-evenly p-2 bg-gray-200 text-gray-900 border rounded-bl-none">
+
+
             <p className="pt-3">{title}</p>
-            {title && <Tooltip> <TooltipTrigger asChild><Button onClick={handleTrashClick} className="w-8 h-8 m-2"><Trash /></Button></TooltipTrigger> <TooltipContent>Delete chat</TooltipContent></Tooltip>}
+            {title && <Tooltip> <TooltipTrigger asChild><Button onClick={handleTrashClick} className="w-8 h-8 m-2"><Trash /></Button></TooltipTrigger> <TooltipContent>Delete chat</TooltipContent></Tooltip>
+            }
           </div>
 
 

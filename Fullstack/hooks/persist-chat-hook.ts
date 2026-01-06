@@ -1,13 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware'
 
-export type message = {
+export type Message = {
     role: "user" | "assistant"
     content: string;
 }
 export type ChatState = {
-    messages: message[]
-    addMessage: (msg: message) => void;
+    messages: Message[]
+    addMessage: (msg: Message) => void;
     clearMessages: () => void;
 }
 
@@ -20,6 +20,8 @@ export const useChatStore = create(persist<ChatState>(
                 messages: [...state.messages, msg],
             })),
         clearMessages: () => set({ messages: [] }),
+        // doesnt remove from storage it just set the messages to empty array
+    
     }),
     {
         name: "chat-history",

@@ -2,7 +2,7 @@
 import ollama from 'ollama'
 import path from "path";
 import { writeFile } from "fs/promises";
-import type {message} from '@/hooks/persist-chat-hook'
+import type {Message} from '@/hooks/persist-chat-hook'
 export async function sendMessage(initialState: any, formData: FormData) {
         const message = formData.get("message")?.toString();
         const model = formData.get("model")?.toString();
@@ -24,7 +24,7 @@ export async function sendMessage(initialState: any, formData: FormData) {
                 messages: [
                         {
                                 role: "user",
-                                content: `keep all responses for this user message which says " ${message} " not more than 3 sentences, 8 words long each.`,
+                                content: `keep all responses for this user message which says " ${message} " `,
 
 
                                 images: imagePath ? [imagePath] : []
@@ -42,7 +42,7 @@ export async function fetchModels() {
 }
 
 //Todo : save chat history , create a title from chat history 
-export async function createTitle(messages: message[], model: string) {
+export async function createTitle(messages: Message[], model: string) {
   const conversation = messages
     .map(m => `${m.role}: ${m.content}`)
     .join("\n");
@@ -85,3 +85,6 @@ export async function save_chat_history() {
 export async function retrieve_chat_history(){
 // TODO : implement a function to retrieve chat history        
 }
+
+
+

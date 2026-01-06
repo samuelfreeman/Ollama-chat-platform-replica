@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 
-type TitleState = {
+export type TitleState = {
     title: String
     addTitle: (title: string) => void
     removeTitle: () => void

@@ -1,4 +1,4 @@
-import { sendMessage } from '../api/actions'
+import { sendMessage } from '../app/api/actions'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Send, Image, PlusCircle } from 'lucide-react'
