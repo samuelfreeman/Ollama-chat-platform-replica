@@ -8,10 +8,9 @@ import {
 import { createTitle, fetchModels } from "./api/actions";
 import { messageCountStore } from "@/hooks/use-checkcount";
 import { createTailwindMerge } from "tailwind-merge";
-import { useChatStore } from "@/hooks/persist-chat-hook";
-import { Trash, MessageSquareIcon } from "lucide-react";
+import { useChatStore } from "@/hooks/chat-hook";
+import { Trash, MessageSquareIcon, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTitleStore } from "@/hooks/use-chat-title";
 import {
   Tooltip,
   TooltipContent,
@@ -20,14 +19,22 @@ import {
 
 export default function Home() {
   const [models, setModel] = useState<string[]>([]);
-  const [messageCount, setMessageCount] = useState<number>(0);
   const [selectedModel, setSelectedModel] = useState<string>("");
-  const addTitle = useTitleStore((state) => state.addTitle)
-  const removeTitle = useTitleStore((state) => state.removeTitle)
-  const title = useTitleStore((store) => store.title)
-  const count = messageCountStore((state: any) => state.count);
-  const messages = useChatStore((state) => state.messages)
-  const clearMessages = useChatStore((state) => state.clearMessages)
+
+  // Use the new single chat store
+  const {
+    chats,
+    currentChatIndex,
+    addChat,
+    updateChat,
+    removeChat,
+    setCurrentChat,
+    addMessageToCurrentChat,
+    clearCurrentChat
+  } = useChatStore();
+
+  const currentChat = chats[currentChatIndex];
+  // Auto-generate title when chat reaches 4 messages
   useEffect(() => {
     async function loadModels() {
       const data = await fetchModels();
@@ -35,48 +42,84 @@ export default function Home() {
 
     }
     loadModels();
-    console.log(messages);
-    if (messages.length == 4) {
+    if (currentChat && currentChat.messages.length === 4 && !currentChat.title) {
       async function generateTitle() {
-        const data = await createTitle(messages, selectedModel)
-        addTitle(data.response)
+        const data = await createTitle(currentChat.messages, currentChat.model);
+        updateChat(currentChatIndex, { title: data.response });
       }
       generateTitle();
     }
-  }, [messages, selectedModel])
+  }, [currentChat?.messages.length, currentChat?.model, currentChatIndex, updateChat]);
 
-  const handleTrashClick = () => {
-    clearMessages()
-    removeTitle()
-  }
+  const handleCreateChat = () => {
+    const newChat = {
+      model: selectedModel || "gpt-oss:120b-cloud",
+      messages: [],
+      title: null
+    };
+    addChat(newChat);
+  };
+
+  const handleSelectChat = (index: number) => {
+    setCurrentChat(index);
+  };
+
+  const handleDeleteChat = (index: number) => {
+    removeChat(index);
+  };
 
 
   return (
-    <div className="flex-1 flex bg-zinc-50 font-mono ">
-
+    <div className="flex-1 flex bg-zinc-50 font-mono">
       <div className="bg-zinc-50 w-1/3 mr-5 h-screen pt-5 border-gray-400 border-r flex justify-center">
-        <div className="w-full flex flex-col items-center  ">
+        <div className="w-full flex flex-col items-center">
           <div className="p-5">
-
-            <Button> <MessageSquareIcon />Create a chat </Button>
+            <Button onClick={handleCreateChat}>
+              <MessageSquareIcon className="mr-2" />
+              Create a chat
+            </Button>
           </div>
           <p className="p-2 m-4 border-b font-mono text-md">CHAT HISTORY</p>
-          < div className="flex text-center text-sm w-full  justify-evenly p-2 bg-gray-200 text-gray-900 border rounded-bl-none">
-
-
-            <p className="pt-3">{title}</p>
-            {title && <Tooltip> <TooltipTrigger asChild><Button onClick={handleTrashClick} className="w-8 h-8 m-2"><Trash /></Button></TooltipTrigger> <TooltipContent>Delete chat</TooltipContent></Tooltip>
-            }
+          <div className="w-full px-4 space-y-2">
+            {chats.map((chat, index) => (
+              <div
+                key={index}
+                className={`flex items-center justify-between p-2 rounded cursor-pointer ${index === currentChatIndex
+                  ? "bg-blue-100 border border-blue-300"
+                  : "bg-gray-100 hover:bg-gray-200"
+                  }`}
+                onClick={() => handleSelectChat(index)}
+              >
+                <div className="flex items-center flex-1 min-w-0">
+                  <MessageSquare className="mr-2 flex-shrink-0" size={16} />
+                  <span className="truncate text-sm">
+                    {chat.title || `Chat ${index + 1}`}
+                  </span>
+                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteChat(index);
+                      }}
+                      className="w-6 h-6 p-0 ml-2 flex-shrink-0"
+                      variant="ghost"
+                    >
+                      <Trash size={12} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete chat</TooltipContent>
+                </Tooltip>
+              </div>
+            ))}
           </div>
-
-
         </div>
       </div>
-      <div className="flex flex-col h-full w-full items-center  justify-center  font-mono dark:bg-black">
-        <div className="p-5 w-full flex justify-end ">
+      <div className="flex flex-col h-full w-full items-center justify-center font-mono dark:bg-black">
+        <div className="p-5 w-full flex justify-end">
           <Tooltip>
             <TooltipTrigger asChild>
-
               <NativeSelect onChange={(e) => setSelectedModel(e.target.value)}>
                 <NativeSelectOption value="">Select Model</NativeSelectOption>
                 {models?.map((model: any) => (
@@ -84,16 +127,24 @@ export default function Home() {
                     {model}
                   </NativeSelectOption>
                 ))}
-
               </NativeSelect>
             </TooltipTrigger>
             <TooltipContent>Select a model</TooltipContent>
           </Tooltip>
         </div>
-        <Form selectedModel={selectedModel} />
+        {currentChat ? (
+          <Form
+            selectedModel={selectedModel}
+            currentChatIndex={currentChatIndex}
+            messages={currentChat.messages}
+          />
+        ) : (
+          <div className="text-center text-gray-500">
+            <MessageSquareIcon size={48} className="mx-auto mb-4" />
+            <p>Select or create a chat to get started</p>
+          </div>
+        )}
       </div>
-      {/* <div className="bg-zinc-50 w-full h-screen border-gray-400 border-l"></div> */}
-
     </div>
   );
 }

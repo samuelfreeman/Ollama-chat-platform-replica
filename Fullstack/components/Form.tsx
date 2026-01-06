@@ -6,7 +6,8 @@ import { Card } from '@/components/ui/card'
 import { useEffect, useRef, useState } from 'react';
 import { useActionState } from 'react';
 import { messageCountStore } from '@/hooks/use-checkcount'
-import { useChatStore } from '@/hooks/persist-chat-hook'
+import { useChatStore } from '@/hooks/chat-hook'
+import type { Message } from '@/hooks/chat-hook'
 
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 const initialState = {
@@ -14,26 +15,33 @@ const initialState = {
     response: "",
 }
 
-const Form = ({ selectedModel }: { selectedModel: string }) => {
+const Form = ({
+    selectedModel,
+    currentChatIndex,
+    messages
+}: {
+    selectedModel: string;
+    currentChatIndex: number;
+    messages: Message[];
+}) => {
     const bottomRef = useRef<HTMLDivElement | null>(null);
     const [state, formAction, pending] = useActionState(sendMessage, initialState)
     const [fileName, setFileName] = useState("")
     const increaseMessageCount = messageCountStore((state: any) => state.increment);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const messages = useChatStore((state) => state.messages)
-    const addMessage = useChatStore((state) => state.addMessage)
+    const { addMessageToCurrentChat } = useChatStore();
 
     useEffect(() => {
         if (!state) return;
 
         if (state.message) {
-            addMessage({ role: "user", content: state.message })
+            addMessageToCurrentChat({ role: "user", content: state.message });
         }
         if (state.response) {
-            addMessage({ role: "assistant", content: state.response })
+            addMessageToCurrentChat({ role: "assistant", content: state.response });
         }
         bottomRef?.current?.scrollIntoView({ behavior: "smooth" });
-    }, [state]);
+    }, [state, addMessageToCurrentChat]);
     return (
         <div className=' w-175 h-[70vh]  '>
             <div className="flex-1 overflow-y-auto  h-full space-y-4 p-4  rounded-lg  scroll-auto  items-end">
@@ -57,8 +65,9 @@ const Form = ({ selectedModel }: { selectedModel: string }) => {
                 ))}
                 <div ref={bottomRef} />
             </div>
-            <form action={formAction} className="flex" encType='multipart/form-data'>
+            <form action={formAction} className="flex">
                 <Input type='hidden' name='model' value={selectedModel} />
+                <Input type='hidden' name='messages' value={JSON.stringify(messages)} />
                 <Tooltip>
                     <TooltipTrigger asChild>
 
