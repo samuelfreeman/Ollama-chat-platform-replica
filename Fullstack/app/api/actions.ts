@@ -1,8 +1,19 @@
 "use server"
-import ollama from 'ollama'
+import  { Ollama } from 'ollama'
 import path from "path";
 import { writeFile } from "fs/promises";
 import type { Message } from '@/hooks/chat-hook'
+import dotenv from "dotenv"
+
+dotenv.config()
+
+const ollama = new Ollama({
+        host: "https://ollama.com",
+        headers: {
+                Authorization: "Bearer " + process.env.OLLAMA_API_KEY,
+        },
+})
+
 export async function sendMessage(initialState: any, formData: FormData) {
         const message = formData.get("message")?.toString();
         const model = formData.get("model")?.toString();
@@ -31,15 +42,16 @@ export async function sendMessage(initialState: any, formData: FormData) {
                 {
                         role: "user" as const,
                         content: message || "",
-                        
+
                         images: imagePath ? [imagePath] : []
                 },
-              
+
         ];
 
         const response = await ollama.chat({
                 model: model || "gpt-oss:120b-cloud",
                 messages: ollamaMessages
+
         })
         console.log("Message received:", message);
         return { message, response: response.message.content }
