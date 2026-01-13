@@ -17,10 +17,25 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
+const VISION_MODELS = [
+  "qwen3-vl:235b-instruct",
+  "qwen3-vl:235b",
+  "deepseek-v3.2",
+  "deepseek-v3.1:671b",
+]
+
+
 export default function Home() {
   const [models, setModel] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>("");
 
+  const sortedModels = [...models].sort((a, b) => {
+    const aVision = VISION_MODELS.includes(a)
+    const bVision = VISION_MODELS.includes(b)
+    if (aVision && !bVision) return -1
+    if (!aVision && bVision) return 1
+    return 0
+  })
   // Use the new single chat store
   const {
     chats,
@@ -122,12 +137,13 @@ export default function Home() {
             <TooltipTrigger asChild>
               <NativeSelect onChange={(e) => setSelectedModel(e.target.value)}>
                 <NativeSelectOption value="">Select Model</NativeSelectOption>
-                {models?.map((model: any) => (
+                {sortedModels.map((model) => (
                   <NativeSelectOption key={model} value={model}>
-                    {model}
+                    {model} {VISION_MODELS.includes(model) ? "(Vision)" : ""}
                   </NativeSelectOption>
                 ))}
               </NativeSelect>
+
             </TooltipTrigger>
             <TooltipContent>Select a model</TooltipContent>
           </Tooltip>

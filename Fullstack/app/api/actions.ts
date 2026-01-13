@@ -1,5 +1,5 @@
 "use server"
-import  { Ollama } from 'ollama'
+import { Ollama } from 'ollama'
 import path from "path";
 import { writeFile } from "fs/promises";
 import type { Message } from '@/hooks/chat-hook'
@@ -21,9 +21,12 @@ export async function sendMessage(initialState: any, formData: FormData) {
         const existingMessages: Message[] = messagesJson ? JSON.parse(messagesJson) : [];
         const file = formData.get("file") as File | null;
         console.log("File received:", file);
+        const hasImage =
+        file instanceof File &&
+        file.size > 0 &&
+        file.type.startsWith("image/")
         let imagePath: string | null = null;
-
-        if (file) {
+        if (hasImage) {
                 const bytes = await file.arrayBuffer();
                 const buffer = Buffer.from(bytes);
 
