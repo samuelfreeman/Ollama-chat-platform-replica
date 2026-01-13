@@ -3,6 +3,7 @@ import Form from "../components/Form";
 import { useEffect, useState } from "react";
 import {
   NativeSelect,
+  NativeSelectOptGroup,
   NativeSelectOption,
 } from "@/components/ui/native-select"
 import { createTitle, fetchModels } from "./api/actions";
@@ -29,6 +30,8 @@ export default function Home() {
   const [models, setModel] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>("");
 
+  const visionModels = models.filter(m => VISION_MODELS.includes(m))
+  const textModels = models.filter(m => !VISION_MODELS.includes(m))
   const sortedModels = [...models].sort((a, b) => {
     const aVision = VISION_MODELS.includes(a)
     const bVision = VISION_MODELS.includes(b)
@@ -135,13 +138,33 @@ export default function Home() {
         <div className="p-5 w-full flex justify-end">
           <Tooltip>
             <TooltipTrigger asChild>
-              <NativeSelect onChange={(e) => setSelectedModel(e.target.value)}>
-                <NativeSelectOption value="">Select Model</NativeSelectOption>
-                {sortedModels.map((model) => (
-                  <NativeSelectOption key={model} value={model}>
-                    {model} {VISION_MODELS.includes(model) ? "(Vision)" : ""}
-                  </NativeSelectOption>
-                ))}
+              <NativeSelect
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+              >
+                <NativeSelectOption value="">
+                  Select Model
+                </NativeSelectOption>
+
+                {visionModels.length > 0 && (
+                  <NativeSelectOptGroup label="Vision Models">
+                    {visionModels.map((model) => (
+                      <NativeSelectOption key={model} value={model}>
+                        {model}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelectOptGroup>
+                )}
+
+                {textModels.length > 0 && (
+                  <NativeSelectOptGroup label="Text-Only Models">
+                    {textModels.map((model) => (
+                      <NativeSelectOption key={model} value={model}>
+                        {model}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelectOptGroup>
+                )}
               </NativeSelect>
 
             </TooltipTrigger>

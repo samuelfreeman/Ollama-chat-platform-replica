@@ -1,13 +1,14 @@
 import { sendMessage } from '../app/api/actions'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Send, Image, PlusCircle } from 'lucide-react'
+import { Send, Image, PlusCircle, Loader2 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { useEffect, useRef, useState } from 'react';
 import { useActionState } from 'react';
 import { messageCountStore } from '@/hooks/use-checkcount'
 import { useChatStore } from '@/hooks/chat-hook'
 import type { Message } from '@/hooks/chat-hook'
+
 
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 const initialState = {
@@ -77,7 +78,7 @@ const Form = ({
                         </Button>
 
                     </TooltipTrigger>
-                    <TooltipContent>Upload an image</TooltipContent>
+                    <TooltipContent>Upload an image (only works for Vision models)</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -99,9 +100,19 @@ const Form = ({
 
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button type="submit" onClick={increaseMessageCount} variant="outline">
-                            <Send />
+                        <Button
+                            type="submit"
+                            onClick={increaseMessageCount}
+                            variant="outline"
+                            disabled={pending}
+                        >
+                            {pending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Send />
+                            )}
                         </Button>
+
                     </TooltipTrigger>
                     <TooltipContent>Send prompt</TooltipContent>
                 </Tooltip>
